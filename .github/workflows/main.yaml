@@ -37,7 +37,7 @@ jobs:
       - name: Setup SonarQube
         uses: sonarsource/sonarqube-scan-action@v4
         with:
-          projectBaseDir: src/
+          projectBaseDir: .
           args: >
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
