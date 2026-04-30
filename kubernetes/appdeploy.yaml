@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: dhifannn/vprofileapp
+          ports:
+            - name: app-port
+              containerPort: 8080
+          
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z vprodb 3306; do echo waiting for mysql; sleep 2; done;']
+
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z vpromq01 5672; do echo waiting for rabbitmq; sleep 2; done;']
+
+        - name: wait-for-memcached
+          image: busybox
+          command: ['sh', '-c', 'until nc -z vprocache01 11211; do echo waiting for memcached; sleep 2; done;']
