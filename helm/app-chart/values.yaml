@@ -30,8 +30,9 @@ ingress:
   host: gitops.dhifops.xyz
   ingressClassName: nginx
 
-# Base64-encoded secrets
-# NOTE: For production, use a secrets manager (e.g. AWS Secrets Manager with External Secrets Operator)
 secrets:
   mysqlRootPassword: ""
   rabbitmqDefaultPass: ""
+
+service:
+  port: 8080
