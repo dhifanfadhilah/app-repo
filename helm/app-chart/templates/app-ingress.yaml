@@ -2,12 +2,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: app-ingress
+  labels:
+    {{- include "vprofile.labels" . | nindent 4 }}
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
   rules:
-    - host: app.dhifops.xyz
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /
@@ -16,4 +18,4 @@ spec:
               service:
                 name: vproapp
                 port:
-                  number: 8080
+                  number: {{ .Values.app.port }}

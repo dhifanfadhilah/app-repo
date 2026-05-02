@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-mc
+  labels:
+    app: app-mc
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.memcached.replicas }}
+  selector:
+    matchLabels:
+      app: app-mc
+  template:
+    metadata:
+      labels:
+        app: app-mc
+    spec:
+      containers:
+        - name: app-mc
+          image: "{{ .Values.memcached.image }}:{{ .Values.memcached.tag }}"
+          ports:
+            - name: app-mc-port
+              containerPort: {{ .Values.memcached.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vprocache01
+  labels:
+    app: app-mc
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: app-mc
+  ports:
+    - port: {{ .Values.memcached.port }}
+      targetPort: app-mc-port
+      protocol: TCP
+  type: ClusterIP

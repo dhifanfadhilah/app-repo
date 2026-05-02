@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-rmq
+  labels:
+    app: app-rmq
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.rabbitmq.replicas }}
+  selector:
+    matchLabels:
+      app: app-rmq
+  template:
+    metadata:
+      labels:
+        app: app-rmq
+    spec:
+      containers:
+        - name: app-rmq
+          image: "{{ .Values.rabbitmq.image }}:{{ .Values.rabbitmq.tag }}"
+          ports:
+            - name: app-rmq-port
+              containerPort: {{ .Values.rabbitmq.port }}
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: {{ .Values.rabbitmq.user | quote }}
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: rabbitmq-default-pass
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vpromq01
+  labels:
+    app: app-rmq
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: app-rmq
+  ports:
+    - port: {{ .Values.rabbitmq.port }}
+      targetPort: app-rmq-port
+      protocol: TCP
+  type: ClusterIP

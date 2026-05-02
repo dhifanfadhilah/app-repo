@@ -1,0 +1,37 @@
+app:
+  image: ""
+  tag: ""
+  replicas: 1
+  port: 8080
+
+db:
+  image: dhifannn/vprofiledb
+  tag: latest
+  replicas: 1
+  port: 3306
+  database: accounts
+  storage: 3Gi
+  storageClassName: default
+
+memcached:
+  image: memcached
+  tag: latest
+  replicas: 1
+  port: 11211
+
+rabbitmq:
+  image: rabbitmq
+  tag: latest
+  replicas: 1
+  port: 5672
+  user: guest
+
+ingress:
+  host: gitops.dhifops.xyz
+  ingressClassName: nginx
+
+# Base64-encoded secrets
+# NOTE: For production, use a secrets manager (e.g. AWS Secrets Manager with External Secrets Operator)
+secrets:
+  mysqlRootPassword: ""
+  rabbitmqDefaultPass: ""

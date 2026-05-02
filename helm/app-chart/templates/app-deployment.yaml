@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app: app
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z vprodb {{ .Values.db.port }}; do echo waiting for mysql; sleep 2; done;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z vpromq01 {{ .Values.rabbitmq.port }}; do echo waiting for rabbitmq; sleep 2; done;']
+        - name: wait-for-memcached
+          image: busybox
+          command: ['sh', '-c', 'until nc -z vprocache01 {{ .Values.memcached.port }}; do echo waiting for memcached; sleep 2; done;']
+      containers:
+        - name: app
+          image: "{{ .Values.app.image }}:{{ .Values.app.tag }}"
+          ports:
+            - name: app-port
+              containerPort: {{ .Values.app.port }}

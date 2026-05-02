@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  labels:
+    app: app-db
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ .Values.db.storageClassName }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.db.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-db
+  labels:
+    app: app-db
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.db.replicas }}
+  selector:
+    matchLabels:
+      app: app-db
+  template:
+    metadata:
+      labels:
+        app: app-db
+    spec:
+      initContainers:
+        - name: busybox
+          image: busybox:latest
+          args: ["rm", "-rf", "/var/lib/mysql/*"]
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      containers:
+        - name: mysql
+          image: "{{ .Values.db.image }}:{{ .Values.db.tag }}"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: {{ .Values.db.database | quote }}
+          ports:
+            - name: app-db-port
+              containerPort: {{ .Values.db.port }}
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vprodb
+  labels:
+    app: app-db
+    {{- include "vprofile.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: app-db
+  ports:
+    - port: {{ .Values.db.port }}
+      targetPort: app-db-port
+      protocol: TCP
+  type: ClusterIP
