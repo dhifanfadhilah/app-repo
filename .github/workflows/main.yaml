@@ -70,18 +70,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.0
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          role-to-assume: ${{ env.AWS_IAM_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7
 
       - name: Build and Push Docker Image to ECR
         env:
-          REGISTRY: ${{ secrets.REGISTRY }}
+          REGISTRY: ${{ env.AWS_REGISTRY }}
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
@@ -99,7 +99,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.0
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37
         with:
           role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
@@ -109,14 +109,14 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        run: kubectl create secret docker-registry regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS --docker-password=$(aws ecr get-login-password)
+        run: kubectl create secret docker-registry regcred --docker-server=${{ env.AWS_REGISTRY }} --docker-username=AWS --docker-password=$(aws ecr get-login-password)
 
       - name: Install Helm Chart
-        uses: bitovi/github-actions-deploy-eks-helm@v1.2.12
+        uses: bitovi/github-actions-deploy-eks-helm@29f556cf128eb1b42f834caf13b60a630ee2a20b
         with:
           aws-region: ${{ env.AWS_REGION }}
           cluster-name: ${{ env.EKS_CLUSTER }}
           chart-path: ./helm/app-chart/
           namespace: default
-          values: app.image=${{ secrets.REGISTRY }}/${{ env.ECR_REPOSITORY }},app.tag=${{ github.sha }},secrets.mysqlRootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }},secrets.rabbitmqDefaultPass=${{ secrets.RABBITMQ_PASS }}
+          values: app.image=${{ env.AWS_REGISTRY }}/${{ env.ECR_REPOSITORY }},app.tag=${{ github.sha }},secrets.mysqlRootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }},secrets.rabbitmqDefaultPass=${{ secrets.RABBITMQ_PASS }}
           name: app-release
