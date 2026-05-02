@@ -1,5 +1,8 @@
 name: "Deploy to AWS"
-on: [workflow_dispatch]
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 env:
   AWS_IAM_ROLE: ${{ secrets.AWS_IAM_ROLE }}
@@ -69,7 +72,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
         with:
-          role-to-assume: ${{ env.AWS_IAM_ROLE }}
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -84,3 +87,36 @@ jobs:
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+  Deploy_to_EKS:
+    needs: Build_and_Publish
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get Kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: kubectl create secret docker-registry regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS --docker-password=$(aws ecr get-login-password)
+
+      - name: Install Helm Chart
+        uses: bitovi/github-actions-deploy-eks-helm@v1.2.12
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          cluster-name: ${{ env.EKS_CLUSTER }}
+          chart-path: ./helm/app-chart/
+          namespace: default
+          values: app.image=${{ secrets.REGISTRY }}/${{ env.ECR_REPOSITORY }},app.tag=${{ github.sha }},secrets.mysqlRootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }},secrets.rabbitmqDefaultPass=${{ secrets.RABBITMQ_PASS }}
+          name: app-release
