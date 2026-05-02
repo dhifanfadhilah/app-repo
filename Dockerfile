@@ -1,6 +1,10 @@
 FROM maven:3.9.9-eclipse-temurin-21-jammy AS builder
-COPY ./ gitops-project
-RUN cd gitops-project && mvn install -DskipTests
+WORKDIR /app
+COPY pom.xml .
+
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
 
 FROM tomcat:10-jdk21
 RUN rm -rf /usr/local/tomcat/webapps/*
