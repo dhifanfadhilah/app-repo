@@ -110,12 +110,11 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        run: | 
-          kubectl create secret docker-registry regcred \
-            --docker-server=${{ env.AWS_REGISTRY }} \
-            --docker-username=AWS \
-            --docker-password=$(aws ecr get-login-password) \
-            --dry-run=client -o yaml | kubectl apply -f -
+        run: kubectl create secret docker-registry regcred \
+          --docker-server=${{ env.AWS_REGISTRY }} \
+          --docker-username=AWS \
+          --docker-password=$(aws ecr get-login-password) \
+          --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Install Helm Chart
         uses: bitovi/github-actions-deploy-eks-helm@29f556cf128eb1b42f834caf13b60a630ee2a20b
