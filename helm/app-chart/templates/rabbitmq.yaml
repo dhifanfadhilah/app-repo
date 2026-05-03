@@ -4,7 +4,7 @@ metadata:
   name: app-rmq
   labels:
     app: app-rmq
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.rabbitmq.replicas }}
   selector:
@@ -36,7 +36,7 @@ metadata:
   name: vpromq01
   labels:
     app: app-rmq
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   selector:
     app: app-rmq

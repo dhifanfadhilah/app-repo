@@ -4,7 +4,7 @@ metadata:
   name: mysql-pvc
   labels:
     app: app-db
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   storageClassName: {{ .Values.db.storageClassName }}
   accessModes:
@@ -19,7 +19,7 @@ metadata:
   name: app-db
   labels:
     app: app-db
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.db.replicas }}
   selector:
@@ -65,7 +65,7 @@ metadata:
   name: vprodb
   labels:
     app: app-db
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   selector:
     app: app-db

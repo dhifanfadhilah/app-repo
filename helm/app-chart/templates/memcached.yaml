@@ -4,7 +4,7 @@ metadata:
   name: app-mc
   labels:
     app: app-mc
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.memcached.replicas }}
   selector:
@@ -28,7 +28,7 @@ metadata:
   name: vprocache01
   labels:
     app: app-mc
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   selector:
     app: app-mc

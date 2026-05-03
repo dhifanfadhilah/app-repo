@@ -4,7 +4,7 @@ metadata:
   name: vproapp
   labels:
     app: app
-    {{- include "vprofile.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
 spec:
   selector:
     app: app
