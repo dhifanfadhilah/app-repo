@@ -1,0 +1,47 @@
+name: "Cluster Debugger"
+on: [workflow_dispatch]
+
+env:
+  AWS_IAM_ROLE: ${{ secrets.AWS_IAM_ROLE }}
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: gitops-eks-cluster
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  debug-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_IAM_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get Kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
+
+      - name: 1. Check Pod Status
+        run: |
+          echo "=== GETTING PODS ==="
+          kubectl get pods -n default
+          
+      - name: 2. Check Service and Endpoints
+        run: |
+          echo "=== GETTING SERVICES & ENDPOINTS ==="
+          kubectl get svc -n default
+          kubectl get endpoints -n default
+          
+      - name: 3. Describe the Ingress
+        run: |
+          echo "=== DESCRIBING INGRESS ==="
+          kubectl describe ingress -n default || echo "No ingress found in default namespace"
+          
+      - name: 4. Get App Logs (If pod exists)
+        # We use a trick here to grab the logs of the first pod matching your app
+        run: |
+          echo "=== GETTING POD LOGS ==="
+          POD_NAME=$(kubectl get pods -n default -l app.kubernetes.io/name=gitops-project-app -o jsonpath="{.items[0].metadata.name}")
+          kubectl logs $POD_NAME || echo "Could not fetch logs. Pod might be crashing too fast."
