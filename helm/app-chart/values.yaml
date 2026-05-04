@@ -11,7 +11,7 @@ db:
   port: 3306
   database: accounts
   storage: 3Gi
-  storageClassName: ""
+  storageClassName: default
 
 memcached:
   image: memcached
