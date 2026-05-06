@@ -17,6 +17,8 @@ This repository houses the application source code, Docker containerization stra
 
 ## 🏗️ CI/CD Pipeline Architecture
 
+![architecture](docs/images/architecture.png)
+
 The deployment lifecycle is fully automated using **GitHub Actions**. The pipeline is broken down into three strict, dependent stages to ensure code quality and deployment safety:
 
 ### Stage 1: Testing & Code Quality
